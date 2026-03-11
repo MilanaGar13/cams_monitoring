@@ -1,0 +1,16 @@
+#скрипт для компиляции и запуска debug или release
+D=`pwd`
+LIBTORCH_DIR=$D/libtorch/
+
+#компиляция
+if [ "$1" == "release" ]; then
+	TYPE="release"
+	LIBTORCH=$LIBTORCH_DIR cargo rustc --release -- -C link-args="-Wl,-rpath,$LIBTORCH_DIR/lib"
+else
+	TYPE="debug"
+	LIBTORCH=$LIBTORCH_DIR cargo rustc -- -C link-args="-Wl,-rpath,$LIBTORCH_DIR/lib" 2> /dev/null
+fi
+#установка cap_net_raw+ep чтобы демон мог пинговать от обычного юзера, а не от рута
+setcap cap_net_raw+ep ./target/$TYPE/cams_monitoring
+#запуск
+./target/$TYPE/cams_monitoring $2 >> /dev/null 2>&1
